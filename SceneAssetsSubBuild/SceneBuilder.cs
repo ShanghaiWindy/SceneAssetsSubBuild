@@ -62,8 +62,8 @@ namespace ShanghaiWindy {
 
                 FileInfo[] files = dir.GetFiles();
                 for (int i = 0; i < files.Length; i++) {
-                    string source = path + "\\" + files[i].Name;
-                    string target = Seach_Path + "\\" + files[i].Name;
+                    string source = path + "/" + files[i].Name;
+                    string target = Seach_Path + "/" + files[i].Name;
                     if (!File.Exists(target) || (GetMD5HashFromFile(target) != GetMD5HashFromFile(source))) {
                         File.Copy(source, target, true);
                     }

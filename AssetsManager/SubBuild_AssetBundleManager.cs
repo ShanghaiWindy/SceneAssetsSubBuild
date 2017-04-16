@@ -31,6 +31,12 @@ namespace ShanghaiWindy.Client {
                 case RuntimePlatform.IPhonePlayer:
                 path = "file://" + Application.streamingAssetsPath + "/TWRPackages/";
                 break;
+                case RuntimePlatform.OSXPlayer:
+                    path = Application.dataPath + "/StreamingAssets/TWRPackages/";
+                    break;
+                case RuntimePlatform.OSXEditor:
+                    path = "file://" + Application.streamingAssetsPath + "/TWRPackages/";
+                break;
 
             }
 
