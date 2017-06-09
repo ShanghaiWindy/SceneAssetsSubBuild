@@ -50,9 +50,17 @@ namespace ShanghaiWindy {
                     foreach (GameObject sceneDataObjects in sceneData.SceneObjectReferences)
                     {
                         AllCurrentAssets.Add(sceneDataObjects);
+
                     }
                 }
-
+                foreach (GameObject CurrentAsset in AllCurrentAssets) {
+                    string Path = AssetDatabase.GetAssetPath(CurrentAsset);
+                    AssetImporter assetImporter = AssetImporter.GetAtPath(Path);
+                    string AssetPathToGUID = AssetNameCorretor(AssetDatabase.AssetPathToGUID(Path));
+                    assetImporter.assetBundleName = AssetPathToGUID;
+                    assetImporter.assetBundleVariant = "sceneobject";
+                    assetImporter.SaveAndReimport();
+                }
                 string[] AssetBundleNames = AssetDatabase.GetAllAssetBundleNames();
 
                 foreach (string AssetBundleName in AssetBundleNames)
@@ -61,22 +69,13 @@ namespace ShanghaiWindy {
                     foreach (string AssetBundlePath in AllAssetBundlePaths)
                     {
                         GameObject PreviousAsset = AssetDatabase.LoadAssetAtPath(AssetBundlePath, typeof(GameObject)) as GameObject;
-                        if (AllCurrentAssets.Contains(PreviousAsset))
-                        {
-                            AssetImporter assetImporter = AssetImporter.GetAtPath(AssetBundlePath);
-                            string AssetPathToGUID = AssetNameCorretor(AssetDatabase.AssetPathToGUID(AssetBundlePath));
-                            assetImporter.assetBundleName = AssetPathToGUID;
-                            assetImporter.assetBundleVariant = "sceneobject";
-                            assetImporter.SaveAndReimport();
-                        }
-                        else
+                        if (!AllCurrentAssets.Contains(PreviousAsset))
                         {
                             AssetImporter assetImporter = AssetImporter.GetAtPath(AssetBundlePath);
                             string AssetPathToGUID = AssetNameCorretor(AssetDatabase.AssetPathToGUID(AssetBundlePath));
                             assetImporter.assetBundleName = null;
                             assetImporter.assetBundleVariant = null;
                             assetImporter.SaveAndReimport();
-                            Debug.Log(AssetBundleName);
                         }
                     }
                 }
