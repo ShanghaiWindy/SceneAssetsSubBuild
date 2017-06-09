@@ -18,15 +18,70 @@ namespace ShanghaiWindy {
             if (PlayerPrefs.HasKey("TargetPlatform")) {
                 runtimePlatform = (BuildTarget)PlayerPrefs.GetInt("TargetPlatform");
             }
+            LoadSceneData();
         }
-        void OnGUI() {
-            EditorGUILayout.HelpBox("The tool will build all assets serialized into Assetbundles separately. ", MessageType.Info);
 
-            EditorGUILayout.HelpBox("Select target platform you want to build assets! ", MessageType.Info);
+        public static  List<SceneData> AllSceneData = new List<SceneData>();
+        public static string SceneDataNames = null;
+        void OnGUI() {
+            EditorGUILayout.HelpBox("The tool will build all assets serialized into Assetbundles separately. ", MessageType.None);
+
+            EditorGUILayout.HelpBox("[Important]!!! Select target platform you want to build assets! ", MessageType.Error);
             runtimePlatform = (BuildTarget)EditorGUILayout.EnumPopup("Target Platform", runtimePlatform);
             PlayerPrefs.SetInt("TargetPlatform", (int)runtimePlatform);
+            //if(GUILayout.Button(""))
+            //AssetDatabase.GetAssetPathsFromAssetBundle
+            EditorGUILayout.HelpBox("Click 1,2,3 in order to build assets!", MessageType.Info);
 
-            if (GUILayout.Button("Build Sub-Assets")) {
+            EditorGUILayout.HelpBox("AssetBundle Settings ", MessageType.None);
+
+            EditorGUILayout.HelpBox(string.Format("Scene Data Count: {0} Maps:{1}", AllSceneData.Count.ToString(), SceneDataNames),MessageType.None);
+
+
+            if (GUILayout.Button("1-Reload  Cooked Scene Data "))
+            {
+                LoadSceneData();
+            }
+            if (GUILayout.Button("2-Label Assets"))
+            {
+                List<GameObject> AllCurrentAssets = new List<GameObject>();
+                foreach (SceneData sceneData in AllSceneData)
+                {
+                    foreach (GameObject sceneDataObjects in sceneData.SceneObjectReferences)
+                    {
+                        AllCurrentAssets.Add(sceneDataObjects);
+                    }
+                }
+
+                string[] AssetBundleNames = AssetDatabase.GetAllAssetBundleNames();
+
+                foreach (string AssetBundleName in AssetBundleNames)
+                {
+                    string[] AllAssetBundlePaths = AssetDatabase.GetAssetPathsFromAssetBundle(AssetBundleName);
+                    foreach (string AssetBundlePath in AllAssetBundlePaths)
+                    {
+                        GameObject PreviousAsset = AssetDatabase.LoadAssetAtPath(AssetBundlePath, typeof(GameObject)) as GameObject;
+                        if (AllCurrentAssets.Contains(PreviousAsset))
+                        {
+                            AssetImporter assetImporter = AssetImporter.GetAtPath(AssetBundlePath);
+                            string AssetPathToGUID = AssetNameCorretor(AssetDatabase.AssetPathToGUID(AssetBundlePath));
+                            assetImporter.assetBundleName = AssetPathToGUID;
+                            assetImporter.assetBundleVariant = "sceneobject";
+                            assetImporter.SaveAndReimport();
+                        }
+                        else
+                        {
+                            AssetImporter assetImporter = AssetImporter.GetAtPath(AssetBundlePath);
+                            string AssetPathToGUID = AssetNameCorretor(AssetDatabase.AssetPathToGUID(AssetBundlePath));
+                            assetImporter.assetBundleName = null;
+                            assetImporter.assetBundleVariant = null;
+                            assetImporter.SaveAndReimport();
+                            Debug.Log(AssetBundleName);
+                        }
+                    }
+                }
+            }
+            if (GUILayout.Button("3-Build Sub-Assets")) {
                 if (!EditorUtility.DisplayDialog("[Important]Comfirm", "Compile Asset on Target Platform:" + runtimePlatform.ToString(), "Yes", "No")) {
                     return;
                 }
@@ -69,7 +124,34 @@ namespace ShanghaiWindy {
                     }
                 }
             }
+
+            
         }
+       public static void LoadSceneData() {
+            string[] AllSceneDataAssetsInfo = Directory.GetFiles("Assets/Cooks/Map", "*.asset");
+            foreach (string SceneDataAssetPath in AllSceneDataAssetsInfo)
+            {
+                SceneData sceneData = AssetDatabase.LoadAssetAtPath(SceneDataAssetPath, typeof(SceneData)) as SceneData;
+                if (!AllSceneData.Contains(sceneData))
+                {
+                    SceneDataNames += SceneDataAssetPath + "\n";
+                    AllSceneData.Add(sceneData);
+                }
+
+            }
+
+
+            foreach (SceneData sceneData in AllSceneData)
+            {
+                Debug.Log(sceneData.SceneObjectReferences.Length);
+            }
+        }
+        public static string AssetNameCorretor(string str)
+        {
+            return str.Replace(" ", "").ToLower();
+
+        }
+
         public static string GetMD5HashFromFile(string fileName) {
             try {
                 FileStream file = new FileStream(fileName, FileMode.Open);

@@ -14,17 +14,18 @@ namespace ShanghaiWindy {
         }
         void OnGUI() {
             EditorGUILayout.HelpBox("The tool will serialize scene  generating a new cooked scene and label scene assets  automatically.Then, you can use SceneBuilder tool to build these assets!", MessageType.Info);
-
+            
             if (GUILayout.Button("Serialize Scene")) {
+                string SceneOriginalName = EditorSceneManager.GetActiveScene().name;
                 #region Save As New Scene
-                EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene(), "Assets/" + EditorSceneManager.GetActiveScene().name + "_Cooked.unity", true);
-                EditorSceneManager.OpenScene("Assets/" + EditorSceneManager.GetActiveScene().name + "_Cooked.unity");
+                EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene(), "Assets/" + SceneOriginalName + "_Cooked.unity", true);
+                EditorSceneManager.OpenScene("Assets/" + SceneOriginalName + "_Cooked.unity");
                 #endregion
                 GameObject[] SceneObjects = GameObject.FindObjectsOfType<GameObject>();
                 List<GameObject> ScenePrefabsGameObjects = new List<GameObject>();
 
                 foreach (GameObject sceneObject in SceneObjects) {
-                    GameObject PrefabRoot = PrefabUtility.FindRootGameObjectWithSameParentPrefab(sceneObject);
+                    GameObject PrefabRoot = PrefabUtility.FindRootGameObjectWithSameParentPrefab(sceneObject); //场景中物体父对象
 
                     if (PrefabUtility.GetPrefabType(sceneObject) != PrefabType.None) {
                         if (PrefabRoot.tag == "NotAllowBuild")
@@ -83,10 +84,10 @@ namespace ShanghaiWindy {
                                 MeshParameters.Add(MeshParameter);
                             }
                         }
-                        sceneAssetPrefab.assetName = PrefabUtility.GetPrefabParent(PrefabRoot).name;
-                        sceneAssetPrefab.meshParameters = MeshParameters.ToArray();
-                        sceneAssetPrefab.assetBundleName = AssetNameCorretor(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(PrefabUtility.GetPrefabParent(PrefabRoot))));
-                        sceneAssetPrefab.assetBundleVariant = "sceneobject";
+                        //sceneAssetPrefab.assetName = PrefabUtility.GetPrefabParent(PrefabRoot).name;
+                        //sceneAssetPrefab.meshParameters = MeshParameters.ToArray();
+                        //sceneAssetPrefab.assetBundleName = AssetNameCorretor(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(PrefabUtility.GetPrefabParent(PrefabRoot))));
+                        //sceneAssetPrefab.assetBundleVariant = "sceneobject";
                         #endregion
                         #endregion
 
@@ -100,21 +101,38 @@ namespace ShanghaiWindy {
                         }
                     }
                 }
-                List<Object> Reimported = new List<Object>();
-
+                List<GameObject> GameObjectsInAsset = new List<GameObject>();
                 foreach (GameObject scenePrefab in ScenePrefabsGameObjects) {
-                    if (scenePrefab != null && !Reimported.Contains(PrefabUtility.GetPrefabParent(scenePrefab))) {
-                        Reimported.Add(PrefabUtility.GetPrefabParent(scenePrefab));
-
-                        Debug.Log(scenePrefab.name + "Asset Reimported!");
-                        AssetImporter assetImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(PrefabUtility.GetPrefabParent(scenePrefab)));
-                        string AssetPathToGUID = AssetNameCorretor(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(PrefabUtility.GetPrefabParent(scenePrefab))));
-
-                        assetImporter.assetBundleName = AssetPathToGUID;
-                        assetImporter.assetBundleVariant = "sceneobject";
-
-
+                    GameObject GameObjectInAsset = PrefabUtility.GetPrefabParent(scenePrefab) as GameObject;
+                    if (!GameObjectsInAsset.Contains(GameObjectInAsset)) {
+                        GameObjectsInAsset.Add(GameObjectInAsset);
                     }
+                }
+
+                SceneData sceneData = ScriptableObject.CreateInstance<SceneData>();
+                sceneData.SceneObjectReferences = GameObjectsInAsset.ToArray();
+                System.IO.DirectoryInfo Dir =  System.IO.Directory.CreateDirectory("Assets/Cooks/Map/");
+
+                AssetDatabase.CreateAsset(sceneData, "Assets/Cooks/Map/"+ SceneOriginalName + ".asset");
+                AssetDatabase.SaveAssets();
+                EditorUtility.FocusProjectWindow();
+                Selection.activeObject = sceneData;
+
+                foreach (GameObject scenePrefab in ScenePrefabsGameObjects)
+                {
+                    //if (scenePrefab != null && !Reimported.Contains(PrefabUtility.GetPrefabParent(scenePrefab)))
+                    //{
+                    //    Reimported.Add(PrefabUtility.GetPrefabParent(scenePrefab));
+
+                    //    Debug.Log(scenePrefab.name + "Asset Reimported!");
+                    //    AssetImporter assetImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(PrefabUtility.GetPrefabParent(scenePrefab)));
+                    //    string AssetPathToGUID = AssetNameCorretor(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(PrefabUtility.GetPrefabParent(scenePrefab))));
+
+                    //    assetImporter.assetBundleName = AssetPathToGUID;
+                    //    assetImporter.assetBundleVariant = "sceneobject";
+
+
+                    //}
                     DestroyImmediate(scenePrefab);
                 }
                 EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
