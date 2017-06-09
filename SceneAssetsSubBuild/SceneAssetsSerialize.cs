@@ -84,10 +84,10 @@ namespace ShanghaiWindy {
                                 MeshParameters.Add(MeshParameter);
                             }
                         }
-                        //sceneAssetPrefab.assetName = PrefabUtility.GetPrefabParent(PrefabRoot).name;
-                        //sceneAssetPrefab.meshParameters = MeshParameters.ToArray();
-                        //sceneAssetPrefab.assetBundleName = AssetNameCorretor(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(PrefabUtility.GetPrefabParent(PrefabRoot))));
-                        //sceneAssetPrefab.assetBundleVariant = "sceneobject";
+                        sceneAssetPrefab.assetName = PrefabUtility.GetPrefabParent(PrefabRoot).name;
+                        sceneAssetPrefab.meshParameters = MeshParameters.ToArray();
+                        sceneAssetPrefab.assetBundleName = AssetNameCorretor(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(PrefabUtility.GetPrefabParent(PrefabRoot))));
+                        sceneAssetPrefab.assetBundleVariant = "sceneobject";
                         #endregion
                         #endregion
 
