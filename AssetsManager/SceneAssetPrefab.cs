@@ -44,7 +44,6 @@ namespace ShanghaiWindy.Client {
                     Instance.layer = gameObject.layer;
 
 
-                    Shader HighQuality = Shader.Find("Standard");
                     if (HasParticleSystem) {
                         ParticleSystemRenderer[] particles = Instance.GetComponentsInChildren<ParticleSystemRenderer>();
                         foreach (ParticleSystemRenderer particle in particles) {
@@ -72,13 +71,8 @@ namespace ShanghaiWindy.Client {
                                 TargetRenderer.realtimeLightmapScaleOffset = meshParameter.realTimeTilingOffset;
                                 TargetRenderer.reflectionProbeUsage = meshParameter.reflectionusage;
                                 for (int i = 0; i < TargetRenderer.sharedMaterials.Length; i++) {
-                                    if (TargetRenderer.sharedMaterials[i].shader.name == HighQuality.name) {
-                                        TargetRenderer.sharedMaterials[i].shader = HighQuality;
-                                    }
-
-                                    else {
                                         TargetRenderer.sharedMaterials[i].shader = Shader.Find(TargetRenderer.sharedMaterials[i].shader.name);
-                                    }
+                                    
                                 }
                             }
                         }
